@@ -49,6 +49,8 @@ Simple constant-velocity planning to allow deterministic behavior.
 
 Algorithms Used
 🌀 B-spline interpolation to smooth discrete waypoints.
+![image](https://github.com/user-attachments/assets/5efac907-9e98-4ab4-b155-54fd4ea22e93)
+
 
 📐 Uniform velocity profile to time-stamp trajectory points.
 
