@@ -1,90 +1,137 @@
-A ROS 2-based trajectory-following module for differential-drive robots (e.g., TurtleBot3), capable of generating smooth trajectories from waypoints and executing them in Gazebo simulation.
+Path Smoothing and Trajectory Control in 2D Space
+This project implements a complete ROS 2-based trajectory tracking pipeline for a differential-drive robot. It features smooth path generation from waypoints, trajectory parameterization, and velocity-based tracking in simulation using the TurtleBot3 and Gazebo.
 
-📦 Requirements
+🚀 Overview
+The robot follows a continuous trajectory derived from coarse 2D waypoints using:
+
+B-spline interpolation for smooth path generation
+
+Time-parameterized trajectory sampling
+
+Proportional controller for path following
+
+The system is built with modular Python scripts under ROS 2 Humble and simulates the TurtleBot3 Burger model in Gazebo.
+
+⚙️ Prerequisites
 ROS 2 Humble
 
-turtlebot3_gazebo package
+Gazebo Classic
 
-Python libraries: numpy, matplotlib, scipy, tf_transformations
+Python ≥ 3.10
 
+ROS 2 packages:
+
+turtlebot3_gazebo
+
+gazebo_ros
+
+tf_transformations
+
+Python libraries:
+
+numpy
+
+scipy
+
+matplotlib
+
+🛠️ Setup Instructions
 Install dependencies:
 
 bash
 sudo apt update
-sudo apt install ros-humble-turtlebot3-gazebo python3-tf-transformations
-🛠️ Workspace Setup
+sudo apt install ros-humble-turtlebot3-gazebo \
+                 python3-tf-transformations \
+                 python3-numpy python3-scipy python3-matplotlib
+Setup workspace:
+
 bash
-# Create workspace
 mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
-
-# Place your package here (trajectory_follower)
-
+# clone or copy this repo here
 cd ~/ros2_ws
 colcon build --packages-select trajectory_follower
 source install/setup.bash
+Export TurtleBot3 model:
 
-# Add to bashrc for convenience
+bash
 echo "export TURTLEBOT3_MODEL=burger" >> ~/.bashrc
 source ~/.bashrc
 ▶️ Running the Simulation
-Terminal 1: Launch Gazebo
+Open 3 terminals:
+
+🖥️ Terminal 1: Launch Gazebo
+
 bash
 source /opt/ros/humble/setup.bash
 LIBGL_ALWAYS_SOFTWARE=1 ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
-Terminal 2: Run the trajectory follower
+🤖 Terminal 2: Start the trajectory follower
+
 bash
-cd ~/ros2_ws
-source install/setup.bash
+source ~/ros2_ws/install/setup.bash
 ros2 run trajectory_follower trajectory_follower
-You should see your TurtleBot3 begin following the smooth trajectory in Gazebo.
+📡 Terminal 3 (optional): Echo velocity topic
 
-🧠 Design & Architecture
-Design Choices
-Modular structure: code split into smooth_path.py, generate_trajectory.py, and follower_node.py.
+bash
+ros2 topic echo /cmd_vel
+🔍 Architecture Overview
+📐 Path Smoothing (smooth_path.py)
+Input: Waypoints
 
-ROS 2 native: uses rclpy, publishers, subscribers, and timers.
+Method: B-spline interpolation (scipy)
 
-Simple constant-velocity planning to allow deterministic behavior.
+Output: Smooth continuous path
+![image](https://github.com/user-attachments/assets/3f60d5d5-e52b-449c-9382-29c45a6e130c)
 
-Algorithms Used
-🌀 B-spline interpolation to smooth discrete waypoints.
-![image](https://github.com/user-attachments/assets/5efac907-9e98-4ab4-b155-54fd4ea22e93)
+🧭 Trajectory Generation (generate_trajectory.py)
+Converts smoothed path to (x, y, t)
+
+Constant velocity assumed (default: 0.2 m/s)
+
+🎮 Trajectory Following (follower_node.py)
+Reads current pose from /odom
+
+Calculates linear and angular velocity to next point
+
+Stops when trajectory is complete
+
+🧪 Real-World Extension
+Real sensors: Replace Gazebo odometry with encoder + IMU
+
+Use robot_localization for data fusion
+
+Adjust controller to hardware constraints
+
+Add safety checks, soft failsafe, RViz debugging
+
+🧠 AI Tools Used
+ChatGPT: Logic design, documentation, debugging
+
+Replit / VS Code: Iterative development
+
+ROS CLI Tools: Testing, validation
+
+🛡️ Obstacle Avoidance (Bonus)
+Reactive strategy using /scan data
+
+Stops robot when obstacle < 0.4m
+
+Resumes once path is clear
+
+Ideal for light dynamic environments
+
+📸 Demo
+You can include a demo video or screenshot here once uploaded. Example:
 
 
-📐 Uniform velocity profile to time-stamp trajectory points.
-
-🔁 The feedback controller calculates linear and angular velocities based on the robot’s position error using odometry.
-
-🤖 Real Robot Extension
-To deploy this to a physical TurtleBot:
-
-Replace /odom topic with data from real encoders or sensor fusion (e.g., EKF using IMU/GPS).
-
-Test first in controlled indoor space.
-
-Deploy on Raspberry Pi or Jetson Nano with topic remapping.
-
-Integrate safety checks: LIDAR-based collision detection or bumper stops.
-
-🤖 AI Tools Used
-🧠 ChatGPT (for modular design, code review, and documentation support)
-
-🧪 VS Code with Pylance (code linting and Python integration)
-
-🧪 Gazebo: Simulation platform for visual debugging of the robot’s trajectory
-
-🧰 rqt_graph and ros2 topic echo for inspecting and verifying topic communication
-
-🚧 Extra Credit: Obstacle Avoidance Plan
-To extend this with dynamic obstacle avoidance:
-
-Subscribe to /scan topic from LIDAR sensor.
-
-Detect proximity violations using simple thresholding or segmentation.
-
-Replan a new, smoothed trajectory on the fly by updating waypoints around obstacles.
-
-Integrate with Nav2 or use potential fields/vector field histograms as reactive layers.
-
-Combine with costmaps and SLAM for autonomous navigation.
+📁 Folder Structure
+bash
+Copy
+Edit
+trajectory_follower/
+├── follower_node.py
+├── generate_trajectory.py
+├── smooth_path.py
+├── setup.py
+├── package.xml
+└── README.md
